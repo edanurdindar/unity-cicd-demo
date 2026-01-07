@@ -113,6 +113,7 @@ jobs:
           allowDirtyBuild: true
           buildsPath: build
           buildName: Unity-Android
+          customParameters: -logFile ./Editor.log
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -126,6 +127,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unity-logs
-          path: |
-            /root/.config/unity3d/Editor.log
-            /root/.config/unity3d/upm.log
+          path: Editor.log
+          if-no-files-found: ignore
