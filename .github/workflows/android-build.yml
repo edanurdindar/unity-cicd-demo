@@ -97,7 +97,7 @@ jobs:
             echo "UNITY_LICENSE is EMPTY"
             exit 1
           fi
-          echo "UNITY_LICENSE is present (length: ${#UNITY_LICENSE})"
+          echo "UNITY_LICENSE is present (length: ${#UNITY_LICENSE })"
 
       - name: Build Android
         uses: game-ci/unity-builder@v4
@@ -121,7 +121,7 @@ jobs:
           name: android-build
           path: build/Android
 
-      # If build fails, upload logs for debugging
+      # Always upload Unity log (helps debug failures)
       - name: Upload Unity logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -129,3 +129,15 @@ jobs:
           name: unity-logs
           path: Editor.log
           if-no-files-found: ignore
+
+      - name: Notify Slack (build link)
+        if: success()
+        shell: bash
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TEXT="✅ Android build hazır!\n• Repo: ${{ github.repository }}\n• Branch: ${{ github.ref_name }}\n• Run: ${RUN_URL}\n\n➡️ Artifacts bölümünden *android-build* indir."
+          payload=$(printf '{"text":"%s"}' "$(echo "$TEXT" | sed 's/"/\\"/g')")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+
