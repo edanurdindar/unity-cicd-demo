@@ -126,14 +126,17 @@ jobs:
           path: Editor.log
           if-no-files-found: ignore
 
-      - name: Notify Slack (build link)
+      - name: Notify Slack (Bot Token)
         if: success()
         shell: bash
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           TEXT="✅ Android build hazır!\n• Repo: ${{ github.repository }}\n• Branch: ${{ github.ref_name }}\n• Run: ${RUN_URL}\n\n➡️ Artifacts bölümünden *android-build* indir."
-          payload=$(printf '{"text":"%s"}' "$(echo "$TEXT" | sed 's/"/\\"/g')")
-          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+          curl -sS -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json; charset=utf-8" \
+            --data "{\"channel\":\"$SLACK_CHANNEL_ID\",\"text\":\"$TEXT\"}"
 
